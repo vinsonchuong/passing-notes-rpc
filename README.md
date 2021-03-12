@@ -43,7 +43,7 @@ These actions can then be called in the browser:
 // ui/index.html
 <!doctype html>
 <meta charset="utf-8">
-<script defer src="/index.js"></script>
+<script type="module" src="/index.js"></script>
 ```
 
 ```js
