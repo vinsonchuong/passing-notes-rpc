@@ -1,7 +1,7 @@
 {
   "name": "passing-notes-rpc",
   "version": "0.0.0",
-  "description": "An awesome package",
+  "description": "Simple communication between browser and server",
   "keywords": [],
   "homepage": "https://github.com/vinsonchuong/passing-notes-rpc",
   "bugs": "https://github.com/vinsonchuong/passing-notes-rpc/issues",
@@ -15,6 +15,11 @@
   "type": "module",
   "devDependencies": {
     "ava": "^3.15.0",
+    "ava-patterns": "^2.4.1",
+    "passing-notes-ui": "^1.0.3",
+    "puppet-strings": "^4.0.1",
+    "puppet-strings-chrome": "^2.0.1",
+    "quick-install": "^2.0.0",
     "semantic-release": "^17.4.1",
     "xo": "^0.38.2"
   },

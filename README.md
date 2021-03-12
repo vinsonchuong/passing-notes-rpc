@@ -4,7 +4,7 @@
 [![dependencies Status](https://david-dm.org/vinsonchuong/passing-notes-rpc/status.svg)](https://david-dm.org/vinsonchuong/passing-notes-rpc)
 [![devDependencies Status](https://david-dm.org/vinsonchuong/passing-notes-rpc/dev-status.svg)](https://david-dm.org/vinsonchuong/passing-notes-rpc?type=dev)
 
-An awesome package
+Simple communication between browser and server
 
 ## Usage
 Install [passing-notes-rpc](https://www.npmjs.com/package/passing-notes-rpc)
@@ -12,4 +12,50 @@ by running:
 
 ```sh
 yarn add passing-notes-rpc
+```
+
+Then, compose it with other middleware:
+
+```js
+import {compose, Logger} from 'passing-notes'
+import {serveRpc} from 'passing-notes-rpc'
+import serveUi from 'passing-notes-ui'
+
+const logger = new Logger()
+
+export default compose(
+  serveRpc({
+    logger,
+    actions: {
+      echo(text) {
+        return `echo: ${text}`
+      }
+    }
+  }),
+  serveUi({path: './ui', logger}),
+  () => () => ({status: 404})
+)
+```
+
+These actions can then be called in the browser:
+
+```js
+// ui/index.html
+<!doctype html>
+<meta charset="utf-8">
+<script defer src="/index.js"></script>
+```
+
+```js
+// ui/index.js
+import {makeRpcClient} from 'passing-notes-rpc'
+
+const client = makeRpcClient()
+
+async function run() {
+  const result = await client.echo('Hello!')
+  console.log(result) // 'echo: Hello!'
+}
+
+run()
 ```
