@@ -15,7 +15,7 @@ test('calling actions over HTTP', async (t) => {
   })
 
   const server = await startServer(
-    {port: 10000},
+    {port: 10_000},
     compose(
       serveRpc({
         logger,
@@ -78,7 +78,7 @@ test('calling actions from the browser', async (t) => {
 
   const logger = new Logger()
   const server = await startServer(
-    {port: 10001},
+    {port: 10_001},
     compose(
       serveRpc({
         logger,

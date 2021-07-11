@@ -8,6 +8,7 @@
   "license": "MIT",
   "author": "Vinson Chuong <vinsonchuong@gmail.com>",
   "repository": "vinsonchuong/passing-notes-rpc",
+  "main": "index.js",
   "scripts": {
     "test": "xo && ava",
     "release": "semantic-release"
@@ -15,13 +16,13 @@
   "type": "module",
   "devDependencies": {
     "ava": "^3.15.0",
-    "ava-patterns": "^2.4.1",
-    "passing-notes-ui": "^1.0.3",
-    "puppet-strings": "^4.0.1",
-    "puppet-strings-chrome": "^2.0.1",
-    "quick-install": "^2.0.0",
-    "semantic-release": "^17.4.1",
-    "xo": "^0.38.2"
+    "ava-patterns": "^2.4.3",
+    "passing-notes-ui": "^1.0.6",
+    "puppet-strings": "^4.1.1",
+    "puppet-strings-chrome": "^2.0.3",
+    "quick-install": "^2.0.2",
+    "semantic-release": "^17.4.4",
+    "xo": "^0.41.0"
   },
   "ava": {
     "verbose": true,
