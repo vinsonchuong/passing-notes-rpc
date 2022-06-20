@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import {useTemporaryDirectory} from 'ava-patterns'
 import install from 'quick-install'
@@ -26,11 +27,11 @@ test('calling actions over HTTP', async (t) => {
 
           error() {
             throw new Error('Something bad happened.')
-          }
-        }
+          },
+        },
       }),
-      () => () => ({status: 404})
-    )
+      () => () => ({status: 404}),
+    ),
   )
   t.teardown(async () => {
     await stopServer(server)
@@ -43,7 +44,7 @@ test('calling actions over HTTP', async (t) => {
   t.like(logs[1], {
     level: 'INFO',
     topic: 'RPC',
-    message: 'echo("Hello!") › Done'
+    message: 'echo("Hello!") › Done',
   })
 
   await t.throwsAsync(client.error(), {message: 'Something bad happened.'})
@@ -61,7 +62,7 @@ test('calling actions from the browser', async (t) => {
     <!doctype html>
     <meta charset="utf-8">
     <script type="module" src="/index.js"></script>
-  `
+  `,
   )
   await directory.writeFile(
     'index.js',
@@ -73,7 +74,7 @@ test('calling actions from the browser', async (t) => {
       document.body.textContent = await client.echo('Hello World!')
     }
     run()
-  `
+  `,
   )
 
   const logger = new Logger()
@@ -85,12 +86,12 @@ test('calling actions from the browser', async (t) => {
         actions: {
           echo(text) {
             return `echo: ${text}`
-          }
-        }
+          },
+        },
       }),
       serveUi({path: directory.path, logger}),
-      () => () => ({status: 404})
-    )
+      () => () => ({status: 404}),
+    ),
   )
   t.teardown(async () => {
     await stopServer(server)
@@ -104,6 +105,6 @@ test('calling actions from the browser', async (t) => {
   const tab = await openTab(browser, 'http://localhost:10001')
   t.is(
     await evalInTab(tab, [], `return document.body.textContent`),
-    'echo: Hello World!'
+    'echo: Hello World!',
   )
 })
