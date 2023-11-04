@@ -30,6 +30,12 @@ export default compose(
       echo(text) {
         return `echo: ${text}`
       }
+
+      async *subscribe() {
+        yield 'One!'
+        yield 'Two!'
+        yield 'Three!'
+      }
     }
   }),
   serveUi({path: './ui', logger}),
@@ -53,8 +59,15 @@ import {makeRpcClient} from 'passing-notes-rpc'
 const client = makeRpcClient()
 
 async function run() {
-  const result = await client.echo('Hello!')
-  console.log(result) // 'echo: Hello!'
+  console.log(await client.echo('Hello!'))
+  // 'echo: Hello!'
+
+  for await (const message of await client.subscribe()) {
+    console.log(message)
+  }
+  // One!
+  // Two!
+  // Three!
 }
 
 run()

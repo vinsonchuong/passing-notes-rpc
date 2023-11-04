@@ -4,7 +4,7 @@ import {useTemporaryDirectory} from 'ava-patterns'
 import install from 'quick-install'
 import {compose, Logger, startServer, stopServer} from 'passing-notes'
 import serveUi from 'passing-notes-ui'
-import {closeBrowser, openTab, evalInTab} from 'puppet-strings'
+import {closeBrowser, openTab, findElement} from 'puppet-strings'
 import {openChrome} from 'puppet-strings-chrome'
 import {serveRpc, makeRpcClient} from './index.js'
 
@@ -25,6 +25,11 @@ test('calling actions over HTTP', async (t) => {
             return `echo: ${text}`
           },
 
+          async *multiple() {
+            yield 'One'
+            yield {message: 'Two'}
+          },
+
           error() {
             throw new Error('Something bad happened.')
           },
@@ -33,8 +38,8 @@ test('calling actions over HTTP', async (t) => {
       () => () => ({status: 404}),
     ),
   )
-  t.teardown(async () => {
-    await stopServer(server)
+  t.teardown(() => {
+    stopServer(server)
   })
 
   const client = makeRpcClient('http://localhost:10000')
@@ -47,9 +52,33 @@ test('calling actions over HTTP', async (t) => {
     message: 'echo("Hello!") › Done',
   })
 
+  {
+    const iterator = await client.multiple()
+    t.deepEqual(await iterator.next(), {value: 'One', done: false})
+    t.deepEqual(await iterator.next(), {value: {message: 'Two'}, done: false})
+    t.deepEqual(await iterator.next(), {value: undefined, done: true})
+
+    t.like(logs[2], {level: 'INFO', topic: 'RPC', message: 'multiple()'})
+    t.like(logs[3], {
+      level: 'INFO',
+      topic: 'RPC',
+      message: 'multiple() › Event',
+    })
+    t.like(logs[4], {
+      level: 'INFO',
+      topic: 'RPC',
+      message: 'multiple() › Event',
+    })
+    t.like(logs[5], {
+      level: 'INFO',
+      topic: 'RPC',
+      message: 'multiple() › Done',
+    })
+  }
+
   await t.throwsAsync(client.error(), {message: 'Something bad happened.'})
-  t.like(logs[2], {level: 'INFO', topic: 'RPC', message: 'error()'})
-  t.like(logs[3], {level: 'ERROR', topic: 'RPC', message: 'error() › Error'})
+  t.like(logs[6], {level: 'INFO', topic: 'RPC', message: 'error()'})
+  t.like(logs[7], {level: 'ERROR', topic: 'RPC', message: 'error() › Error'})
 })
 
 test('calling actions from the browser', async (t) => {
@@ -71,13 +100,28 @@ test('calling actions from the browser', async (t) => {
 
     async function run() {
       const client = makeRpcClient()
-      document.body.textContent = await client.echo('Hello World!')
+
+      {
+        const div = document.createElement('div')
+        div.textContent = await client.echo('Hello World!')
+        document.body.append(div)
+      }
+
+      for await (const item of await client.multiple()) {
+        const div = document.createElement('div')
+        div.textContent = item
+        document.body.append(div)
+      }
     }
     run()
   `,
   )
 
   const logger = new Logger()
+  logger.on('log', (event) => {
+    t.log(event)
+  })
+
   const server = await startServer(
     {port: 10_001},
     compose(
@@ -87,24 +131,32 @@ test('calling actions from the browser', async (t) => {
           echo(text) {
             return `echo: ${text}`
           },
+          async *multiple() {
+            yield 'One'
+            yield 'Two'
+          },
         },
       }),
       serveUi({path: directory.path, logger}),
       () => () => ({status: 404}),
     ),
   )
-  t.teardown(async () => {
-    await stopServer(server)
+  t.teardown(() => {
+    stopServer(server)
   })
 
   const browser = await openChrome()
-  t.teardown(async () => {
-    await closeBrowser(browser)
+  t.teardown(() => {
+    closeBrowser(browser)
   })
 
-  const tab = await openTab(browser, 'http://localhost:10001')
-  t.is(
-    await evalInTab(tab, [], `return document.body.textContent`),
-    'echo: Hello World!',
-  )
+  const tab = await openTab(browser, 'http://localhost:10001', {
+    waitUntilNetworkIdle: true,
+  })
+
+  await findElement(tab, 'div', 'echo: Hello World!')
+  await findElement(tab, 'div', 'One')
+  await findElement(tab, 'div', 'Two')
+
+  t.pass()
 })
